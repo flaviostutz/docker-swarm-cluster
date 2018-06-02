@@ -10,6 +10,7 @@ Combines some tooling for creating a good Docker Swarm Cluster.
 - Docker Janitor
 
 #### Metrics Monitoring
+- Heavily inspired on https://github.com/stefanprodan/swarmprom
 - Prometheus
 - Unsee Alert Manager
 - Grafana
@@ -45,6 +46,7 @@ Combines some tooling for creating a good Docker Swarm Cluster.
   - ```export $(cat .env) && docker stack deploy --compose-file docker-compose-admin.yml admin```
   - Swarm Dashboard: [http://swarm-dasboard.mycluster.org]()
   - Portainer: [http://portainer.mycluster.org]()
+  - Janitor: will perform system prune from time to time to release unused resources
 - docker-compose-metrics.yml
   - ```export $(cat .env) && docker stack deploy --compose-file docker-compose-metrics.yml metrics```
   - Prometheus: [http://prometheus.mycluster.org]()
@@ -53,3 +55,6 @@ Combines some tooling for creating a good Docker Swarm Cluster.
 - docker-compose-logs.yml
   - ```export $(cat .env) && docker stack deploy --compose-file docker-compose-logs.yml logs```
   - Graylog: [http://graylog.mycluster.org]()
+- docker-compose-volumes.yml
+  - ```export $(cat .env) && docker stack deploy --compose-file docker-compose-volumes.yml logs```
+  - Ceph UI: [http://ceph.mycluster.org]()

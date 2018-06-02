@@ -2,12 +2,11 @@ version: '3.5'
 
 services:
   dashboard:
-    image: charypar/swarm-dashboard
+    image: charypar/swarm-dashboard:latest
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    ports:
+    # ports:
     #   - 4040:8080
-      - 8080
     environment:
       PORT: 8080
     deploy:
@@ -19,13 +18,18 @@ services:
       placement:
         constraints:
           - node.role == manager
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
     networks:
       - traefik-net
 
   portainer:
-    image: portainer/portainer
-    ports:
-      - 5050:9000
+    image: portainer/portainer:1.17.1
+    # ports:
+    #   - 5050:9000
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     deploy:
@@ -37,8 +41,28 @@ services:
       placement:
         constraints:
           - node.role == manager
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
     networks:
       - traefik-net
+
+  janitor:
+    image: flaviostutz/docker-janitor:latest
+    deploy:
+      mode: global
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+    environment:
+      - SLEEP_TIME=86400
+      - UNUSED_TIME=24h
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
 
 networks:
   traefik-net:

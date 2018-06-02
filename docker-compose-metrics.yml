@@ -1,0 +1,185 @@
+version: '3.5'
+
+services:
+
+services:
+  # dockerd-exporter:
+  #   image: stefanprodan/caddy
+  #   networks:
+  #     - net
+  #   environment:
+  #     - DOCKER_GWBRIDGE_IP=172.18.0.1
+  #   deploy:
+  #     mode: global
+  #     resources:
+  #       limits:
+  #         memory: 128M
+  #       reservations:
+  #         memory: 64M
+
+  cadvisor:
+    image: google/cadvisor:v0.29.0
+    command: -logtostderr -docker_only
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /:/rootfs:ro
+      - /var/run:/var/run
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - metrics
+    deploy:
+      mode: global
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+
+  node-exporter:
+    image: stefanprodan/swarmprom-node-exporter:v0.15.2
+    environment:
+      - NODE_ID={{.Node.ID}}
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+      - /etc/hostname:/etc/nodename
+    command:
+      - '--path.sysfs=/host/sys'
+      - '--path.procfs=/host/proc'
+      - '--collector.textfile.directory=/etc/node-exporter/'
+      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+      # no collectors are explicitely enabled here, because the defaults are just fine,
+      # see https://github.com/prometheus/node_exporter
+      # disable ipvs collector because it barfs the node-exporter logs full with errors on my centos 7 vm's
+      - '--no-collector.ipvs'
+    networks:
+      - metrics
+    deploy:
+      mode: global
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+
+  alertmanager:
+    image: stefanprodan/swarmprom-alertmanager:v0.14.0
+    environment:
+      - SLACK_URL=${SLACK_URL:-https://hooks.slack.com/services/TOKEN}
+      - SLACK_CHANNEL=${SLACK_CHANNEL:-general}
+      - SLACK_USER=${SLACK_USER:-alertmanager}
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    volumes:
+      - alertmanager:/alertmanager
+    networks:
+      - metrics
+      - traefik-net
+    deploy:
+      labels:
+        traefik.frontend.rule: Host:alertmanager.${CLUSTER_DOMAIN}
+        traefik.port: 9093
+        traefik.docker.network: traefik-net
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+
+  unsee:
+    image: cloudflare/unsee:v0.8.0
+    environment:
+      - "ALERTMANAGER_URIS=default:http://alertmanager:9093"
+    networks:
+      - metrics
+      - traefik-net
+    deploy:
+      labels:
+        traefik.frontend.rule: Host:unsee.${CLUSTER_DOMAIN}
+        traefik.port: 8080
+        traefik.docker.network: traefik-net
+      mode: replicated
+      replicas: 1
+
+  prometheus:
+    image: stefanprodan/swarmprom-prometheus:v2.2.0-rc.0
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention=24h'
+    volumes:
+      - prometheus:/prometheus
+    # configs:
+    #   - source: node_rules
+    #     target: /etc/prometheus/swarm_node.rules.yml
+    #   - source: task_rules
+    #     target: /etc/prometheus/swarm_task.rules.yml
+    networks:
+      - metrics
+      - traefik-net
+    deploy:
+      labels:
+        traefik.frontend.rule: Host:prometheus.${CLUSTER_DOMAIN}
+        traefik.port: 9090
+        traefik.docker.network: traefik-net
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          memory: 2048M
+        reservations:
+          memory: 128M
+
+  grafana:
+    image: stefanprodan/swarmprom-grafana:5.0.1
+    environment:
+      - GF_SECURITY_ADMIN_USER=${ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana:/var/lib/grafana
+    networks:
+      - metrics
+      - traefik-net
+    deploy:
+      labels:
+        traefik.frontend.rule: Host:grafana.${CLUSTER_DOMAIN}
+        traefik.port: 3000
+        traefik.docker.network: traefik-net
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+          
+
+networks:
+  traefik-net:
+    external: true
+  metrics:
+    driver: overlay
+    attachable: true
+
+volumes:
+    prometheus: {}
+    grafana: {}
+    alertmanager: {}
+
