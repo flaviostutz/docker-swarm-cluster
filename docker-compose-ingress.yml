@@ -4,7 +4,7 @@ services:
   traefik:
     image: traefik:1.6-alpine # The official Traefik docker image
     # command: --api --docker --docker.swarmMode --docker.watch --entryPoints='Name:http Address::80' --defaultentrypoints=http # Enables the web UI and tells Træfik to listen to docker
-    command: --api --docker --docker.swarmMode --docker.watch --metrics.prometheus # Enables the web UI and tells Træfik to listen to docker
+    command: --api --docker --docker.swarmMode --docker.watch --metrics.prometheus --metrics.statistics # Enables the web UI and tells Træfik to listen to docker
     ports:
       - "80:80"     # The HTTP port
       - "3030:8080" # The Web UI (enabled by --api)
