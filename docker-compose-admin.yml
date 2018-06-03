@@ -28,8 +28,8 @@ services:
 
   portainer:
     image: portainer/portainer:1.17.1
-    # ports:
-    #   - 5050:9000
+    ports:
+      - 5050:9000
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer:/data
