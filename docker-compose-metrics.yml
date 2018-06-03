@@ -1,22 +1,45 @@
 version: '3.5'
 
 services:
+  dockerd-exporter:
+    image: stefanprodan/dockerd-exporter:latest
+    networks:
+      - metrics-net
+    # environment:
+    #   - DOCKER_GWBRIDGE_IP=172.18.0.1
+    deploy:
+      mode: global
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
 
-services:
-  # dockerd-exporter:
-  #   image: stefanprodan/caddy
-  #   networks:
-  #     - net
-  #   environment:
-  #     - DOCKER_GWBRIDGE_IP=172.18.0.1
-  #   deploy:
-  #     mode: global
-  #     resources:
-  #       limits:
-  #         memory: 128M
-  #       reservations:
-  #         memory: 64M
-
+  node-exporter:
+    image: prom/node-exporter:v0.14.0
+    # image: stefanprodan/swarmprom-node-exporter:v0.15.2
+    environment:
+      - NODE_ID={{.Node.ID}}
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+      # - /etc/hostname:/etc/nodename
+    # command:
+      # - '-path.sysfs=/host/sys'
+      # - '-path.procfs=/host/proc'
+      # - '-collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+      # - '-no-collector.ipvs'
+    networks:
+      - metrics-net
+    deploy:
+      mode: global
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+          
   cadvisor:
     image: google/cadvisor:v0.29.0
     command: -logtostderr -docker_only
@@ -27,35 +50,7 @@ services:
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
     networks:
-      - metrics
-    deploy:
-      mode: global
-      resources:
-        limits:
-          memory: 128M
-        reservations:
-          memory: 64M
-
-  node-exporter:
-    image: stefanprodan/swarmprom-node-exporter:v0.15.2
-    environment:
-      - NODE_ID={{.Node.ID}}
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-      - /etc/hostname:/etc/nodename
-    command:
-      - '--path.sysfs=/host/sys'
-      - '--path.procfs=/host/proc'
-      - '--collector.textfile.directory=/etc/node-exporter/'
-      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
-      # no collectors are explicitely enabled here, because the defaults are just fine,
-      # see https://github.com/prometheus/node_exporter
-      # disable ipvs collector because it barfs the node-exporter logs full with errors on my centos 7 vm's
-      - '--no-collector.ipvs'
-    networks:
-      - metrics
+      - metrics-net
     deploy:
       mode: global
       resources:
@@ -76,12 +71,12 @@ services:
     volumes:
       - alertmanager:/alertmanager
     networks:
-      - metrics
+      - metrics-net
       - traefik-net
     deploy:
       labels:
         traefik.frontend.rule: Host:alertmanager.${CLUSTER_DOMAIN}
-        traefik.port: 9093
+        traefik.port: "9093"
         traefik.docker.network: traefik-net
       mode: replicated
       replicas: 1
@@ -99,12 +94,12 @@ services:
     environment:
       - "ALERTMANAGER_URIS=default:http://alertmanager:9093"
     networks:
-      - metrics
+      - metrics-net
       - traefik-net
     deploy:
       labels:
         traefik.frontend.rule: Host:unsee.${CLUSTER_DOMAIN}
-        traefik.port: 8080
+        traefik.port: "8080"
         traefik.docker.network: traefik-net
       mode: replicated
       replicas: 1
@@ -117,6 +112,8 @@ services:
       - '--web.console.templates=/etc/prometheus/consoles'
       - '--storage.tsdb.path=/prometheus'
       - '--storage.tsdb.retention=24h'
+    environment:
+      - JOBS=traefik:8080
     volumes:
       - prometheus:/prometheus
     # configs:
@@ -125,12 +122,12 @@ services:
     #   - source: task_rules
     #     target: /etc/prometheus/swarm_task.rules.yml
     networks:
-      - metrics
+      - metrics-net
       - traefik-net
     deploy:
       labels:
         traefik.frontend.rule: Host:prometheus.${CLUSTER_DOMAIN}
-        traefik.port: 9090
+        traefik.port: "9090"
         traefik.docker.network: traefik-net
       mode: replicated
       replicas: 1
@@ -152,12 +149,12 @@ services:
     volumes:
       - grafana:/var/lib/grafana
     networks:
-      - metrics
+      - metrics-net
       - traefik-net
     deploy:
       labels:
         traefik.frontend.rule: Host:grafana.${CLUSTER_DOMAIN}
-        traefik.port: 3000
+        traefik.port: "3000"
         traefik.docker.network: traefik-net
       mode: replicated
       replicas: 1
@@ -174,9 +171,8 @@ services:
 networks:
   traefik-net:
     external: true
-  metrics:
-    driver: overlay
-    attachable: true
+  metrics-net:
+    external: true
 
 volumes:
     prometheus: {}
