@@ -27,11 +27,14 @@ Combines some tooling for creating a good Docker Swarm Cluster.
 ## Installation
 1. Install Ubuntu on all VMs you're mean't to use in your Swarm Cluster
 2. Install the latest Docker package on all VMs
-3. On one VM, execute ````docker swarm init````. Copy the provided command/token
+3. On one of the VMs:
+   1. Execute ````docker swarm init````
+   2. Copy the provided command/token
 4. On the other machines, run the provided command so they will join the Swarm Cluster
-5. Setup .env parameters
-6. Run ```initialize-services.sh```
-7. Open http://portainer.mycluster.org and point it to "Local Daemon"
+5. ```git clone https://github.com/flaviostutz/docker-swarm-cluster.git```
+6. Setup .env parameters
+7. Run ```initialize-services.sh```
+8. Open http://portainer.mycluster.org and point it to "Local Daemon"
 9. Look into docker-compose-* files for understanding the cluster topology
 
 ## Customizations
