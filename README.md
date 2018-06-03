@@ -16,6 +16,9 @@ Combines some tooling for creating a good Docker Swarm Cluster.
 - Grafana
 
 ### TODO
+#### CI/CD
+- Gitlab
+
 #### Logs aggregation
 - FluentBit
 - Graylog
