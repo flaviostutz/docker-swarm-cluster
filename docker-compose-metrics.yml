@@ -181,7 +181,7 @@ configs:
     file: ./prometheus/task.rules.yml
 
 volumes:
-    prometheus: {}
-    grafana: {}
-    alertmanager: {}
+  prometheus: {}
+  grafana: {}
+  alertmanager: {}
 

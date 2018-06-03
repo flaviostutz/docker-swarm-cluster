@@ -32,6 +32,7 @@ services:
     #   - 5050:9000
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - portainer:/data
     deploy:
       labels:
         traefik.frontend.rule: Host:portainer.${CLUSTER_DOMAIN}
@@ -67,3 +68,6 @@ services:
 networks:
   traefik-net:
     external: true
+
+volumes:
+  portainer: {}
