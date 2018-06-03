@@ -25,6 +25,7 @@ Combines some tooling for creating a good Docker Swarm Cluster.
 
 #### Volume management
 - Ceph
+- Backup
 
 
 ## Installation
