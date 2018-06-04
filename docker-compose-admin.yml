@@ -51,7 +51,7 @@ services:
       - traefik-net
       - admin-net
   agent:
-    image: portainer/agent
+    image: portainer/agent:1.0.0
     environment:
       AGENT_CLUSTER_ADDR: tasks.agent
     volumes:
