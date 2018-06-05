@@ -1,0 +1,23 @@
+stages:
+- deploy
+- undeploy
+
+before_script:
+  - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
+  - STACK=${CI_PROJECT_PATH_SLUG##*deploy-}
+
+deploy:
+  stage: deploy
+  environment:
+    name: $CI_COMMIT_REF_NAME
+  script:
+    - docker stack deploy --with-registry-auth -c docker-compose.yml $STACK
+  only:
+    - deploy  
+   
+undeploy:
+  stage: undeploy
+  script:
+    - docker stack rm $STACK
+  only:
+    - deploy  

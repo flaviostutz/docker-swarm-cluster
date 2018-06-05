@@ -16,15 +16,15 @@ Combines some tooling for creating a good Docker Swarm Cluster.
 - Grafana
 
 ### TODO
-#### CI/CD
-- Gitlab
+#### CI/CD Tools
+- Gitlab Runner
 
 #### Logs aggregation
 - FluentBit
 - Graylog
 
 #### Volume management
-- Ceph
+- GlusterFS
 - Backup
 
 
@@ -60,6 +60,8 @@ Combines some tooling for creating a good Docker Swarm Cluster.
   - Prometheus: [http://prometheus.mycluster.org]()
   - Grafana: [http://grafana.mycluster.org]()
   - Unsee: [http://unsee.mycluster.org]()
+- docker-compose-devtools.yml
+  - ```export $(cat .env) && docker stack deploy --compose-file docker-compose-devtools.yml devtools```
 - docker-compose-logs.yml
   - ```export $(cat .env) && docker stack deploy --compose-file docker-compose-logs.yml logs```
   - Graylog: [http://graylog.mycluster.org]()

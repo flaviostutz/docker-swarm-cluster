@@ -1,0 +1,7 @@
+version: '3.5'
+
+services:
+  hello-world:
+    image: psitrax/hello-world
+    ports:
+      - 9000:9000

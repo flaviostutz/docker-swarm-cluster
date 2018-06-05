@@ -1,0 +1,13 @@
+version: '3.5'
+
+services:
+  glusterfs-plugin:
+    image: contiv/volplugin-autorun:v0.3.0
+    deploy:
+      mode: global
+      resources:
+        limits:
+          memory: 1024M
+        reservations:
+          memory: 128M
+
