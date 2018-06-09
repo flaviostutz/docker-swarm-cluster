@@ -2,6 +2,23 @@ version: '3.5'
 
 services:
   hello-world:
-    image: psitrax/hello-world
-    ports:
-      - 9000:9000
+    image: whalesalad/docker-debug
+    # ports:
+    #   - 8080:8080
+    networks:
+      - traefik-net
+    deploy:
+      labels:
+        traefik.frontend.rule: Host:hello-world.mycluster.org
+        traefik.port: "8080"
+        traefik.docker.network: traefik-net
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+networks:
+  traefik-net:
+    external: true

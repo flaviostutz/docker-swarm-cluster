@@ -3,7 +3,7 @@ stages:
 - undeploy
 
 before_script:
-  - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
+  # - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN http://gitlab.mycluster.com
   - STACK=${CI_PROJECT_PATH_SLUG##*deploy-}
 
 deploy:
@@ -21,3 +21,4 @@ undeploy:
     - docker stack rm $STACK
   only:
     - deploy  
+

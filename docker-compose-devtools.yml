@@ -5,7 +5,7 @@ services:
     image: flaviostutz/gitlab-runner
     environment:
       - GITLAB_URL=http://gitlab/
-      - REGISTRATION_TOKEN=9CpEafVzViMEio1ftJMV
+      - REGISTRATION_TOKEN=jPhhnDq7aRygyrMRzJ9e
       - DESCRIPTION=Runner1
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
