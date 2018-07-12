@@ -71,6 +71,8 @@ services:
     image: flaviostutz/docker-swarm-feeds:1.1.0
     ports:
       - 5353:8000
+    environment:
+      - FEED_NAME=${CLUSTER_DOMAIN}
     deploy:
       labels:
         traefik.frontend.rule: Host:feeds.${CLUSTER_DOMAIN}
