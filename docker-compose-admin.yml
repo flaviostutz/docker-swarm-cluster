@@ -87,7 +87,8 @@ services:
           memory: 64M
     networks:
       - traefik-net
-      - admin-net
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
 
   janitor:
     image: flaviostutz/docker-janitor:latest
