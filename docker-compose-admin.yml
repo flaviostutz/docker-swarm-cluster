@@ -50,6 +50,7 @@ services:
     networks:
       - traefik-net
       - admin-net
+
   agent:
     image: portainer/agent:1.0.0
     environment:
@@ -65,6 +66,28 @@ services:
       - admin-net
     deploy:
       mode: global
+
+  feeds:
+    image: flaviostutz/docker-swarm-feeds:1.1.0
+    ports:
+      - 5353:8000
+    deploy:
+      labels:
+        traefik.frontend.rule: Host:feeds.${CLUSTER_DOMAIN}
+        traefik.port: 8000
+        traefik.docker.network: traefik-net
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+    networks:
+      - traefik-net
+      - admin-net
 
   janitor:
     image: flaviostutz/docker-janitor:latest

@@ -1,7 +1,12 @@
 version: '3.5'
 
 services:
-  glusterfs-plugin:
+  ceph-all:
+    image: ceph/demo
+    environment:
+      - MON_IP=ceph.${CLUSTER_DOMAIN}
+      - CEPH_PUBLIC_NETWORK=127.0.0.0/24
+  ceph-docker-plugin:
     image: contiv/volplugin-autorun:v0.3.0
     deploy:
       mode: global

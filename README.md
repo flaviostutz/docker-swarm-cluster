@@ -15,17 +15,18 @@ Combines some tooling for creating a good Docker Swarm Cluster.
 - Unsee Alert Manager
 - Grafana
 
-### TODO
 #### CI/CD Tools
 - Gitlab Runner
 
+### TODO
+#### Volume management
+- Ceph
+- Backup
+
 #### Logs aggregation
 - FluentBit
+- Kafka
 - Graylog
-
-#### Volume management
-- GlusterFS
-- Backup
 
 
 ## Installation

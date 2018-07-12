@@ -16,20 +16,14 @@ services:
           memory: 64M
 
   node-exporter:
-    image: prom/node-exporter:v0.14.0
-    # image: stefanprodan/swarmprom-node-exporter:v0.15.2
+    image: flaviostutz/docker-swarm-node-exporter:0.14.5
     environment:
       - NODE_ID={{.Node.ID}}
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
       - /:/rootfs:ro
-      # - /etc/hostname:/etc/nodename
-    # command:
-      # - '-path.sysfs=/host/sys'
-      # - '-path.procfs=/host/proc'
-      # - '-collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
-      # - '-no-collector.ipvs'
+      - /etc/hostname:/etc/nodename
     networks:
       - metrics-net
     deploy:
