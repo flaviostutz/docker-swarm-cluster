@@ -1,18 +1,110 @@
-version: '3.5'
-
+version: "3.5"
 services:
-  traefik:
-    image: traefik:1.6-alpine # The official Traefik docker image
-    # command: --api --docker --docker.swarmMode --docker.watch --entryPoints='Name:http Address::80' --defaultentrypoints=http # Enables the web UI and tells Træfik to listen to docker
-    command: --api --docker --docker.swarmMode --docker.watch --metrics.prometheus # Enables the web UI and tells Træfik to listen to docker
-    ports:
-      - "80:80"     # The HTTP port
-      - "3030:8080" # The Web UI (enabled by --api)
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock # So that Traefik can listen to the Docker events
+  traefik_init:
+    image: traefik:1.5 # The official Traefik docker image
+    command:
+      - "storeconfig"
+      - "--web"
+      - "--api"
+      - "--entrypoints=Name:internal_http Address::80"
+      - "--entrypoints=Name:external_http Address::10080"
+   #  - "--entrypoints=Name:external_https Address::10443 TLS:/etc/traefik/ssl/server.crt,/etc/traefik/ssl/server.key"
+   #  - "--defaultentrypoints=internal_http,internal_https"
+      - "--defaultentrypoints=internal_http"
+      - "--insecureSkipVerify=true"
+      - "--maxIdleConnsPerHost=100000"
+      - "--docker"
+      - "--docker.swarmmode"
+      - "--docker.domain=${CLUSTER_DOMAIN}"
+      - "--docker.watch"
+      - "--consul"
+      - "--consul.endpoint=consul:8500"
+      - "--consul.prefix=traefik"
     networks:
       - metrics-net
       - traefik-net
+    deploy:
+      restart_policy:
+        condition: on-failure
+    depends_on:
+      - consul
+
+  traefik:
+    image: traefik:1.5
+    depends_on:
+      - traefik_init
+      - consul
+    command:
+      - "--consul"
+      - "--consul.endpoint=consul:8500"
+      - "--consul.prefix=traefik"
+    volumes:
+  #    - /mnt/dados/edge/traefik/ssl:/etc/traefik/ssl
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - target: 80
+        published: 80
+        mode: host
+#      - target: 443
+#        published: 443
+#        mode: host
+      - target: 10080
+        published: 10080
+        mode: host
+#      - target: 10443
+#        published: 10443
+#        mode: host
+      - target: 8080
+        published: 8080
+        mode: host
+    networks:
+      - metrics-net
+      - traefik-net
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == manager
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  consul:
+    image: consul:1.0.7
+    command: agent -server -bootstrap-expect=1
+    volumes:
+      - consul:/consul/data
+    environment:
+      - CONSUL_LOCAL_CONFIG={"server":true}
+      - CONSUL_BIND_INTERFACE=eth0
+      - CONSUL_CLIENT_INTERFACE=eth0
+    networks:
+      - metrics-net
+      - traefik-net
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+  dashboard:
+    image: labbsr0x/http-proxy
+    environment:
+      - PROXY_PASS=http://192.168.160.1:8080	
+    networks:
+      - metrics-net
+      - traefik-net
+    deploy:
+      labels:
+#        - traefik.frontend.entryPoints=internal_http,internal_https,external_http,external_https
+        - traefik.frontend.rule=Host:traefik.${CLUSTER_DOMAIN}
+        - traefik.port=80
+      placement:
+        constraints:
+          - node.role == manager
 
 networks:
   traefik-net:
@@ -22,3 +114,5 @@ networks:
     external: true
     # "docker network create metrics-net --scope swarm -d overlay"
 
+volumes:
+  consul: {}
