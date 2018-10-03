@@ -28,6 +28,8 @@ Combines some tooling for creating a good Docker Swarm Cluster.
 - Kafka
 - Graylog
 
+#### Metrics Monitoring
+- Telegrambot
 
 ## Installation
 1. Install Ubuntu on all VMs you're mean't to use in your Swarm Cluster
