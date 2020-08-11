@@ -36,6 +36,11 @@ Combines some tooling for creating a good Docker Swarm Cluster.
 9. Look into docker-compose-* files for understanding the cluster topology
 10. Run `curl -kLv --user whoami:whoami123 localhost` and verify if the request was successful
 
+## Tricks
+
+* Caddy has a "development" mode where it uses a self signed certificate while not in production. Just add `- caddy.tls=internal` label to your service.
+
+
 ## Customizations
 
 1. Change the desired compose file for specific cluster configurations

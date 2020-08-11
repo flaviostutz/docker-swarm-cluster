@@ -7,7 +7,8 @@ services:
       - caddy
     deploy:
       labels:
-        - caddy=helloworld.mycluster.org:80
+        - caddy=helloworld.mycluster.org
+        - caddy.tls=internal
         - caddy.reverse_proxy={{upstreams 8080}}
         - caddy.encode=gzip
       mode: replicated
