@@ -1,54 +1,48 @@
 # docker-swarm-cluster
+
 Combines some tooling for creating a good Docker Swarm Cluster.
 
-#### HTTP(S) Ingress
-- Traefik
+## Overview
 
-#### Cluster Management
+### HTTP(S) Ingress
+
+- Caddy
+
+### Cluster Management
+
 - Swarm Dashboard
 - Portainer
 - Docker Janitor
 
-#### Metrics Monitoring
-- Heavily inspired on https://github.com/stefanprodan/swarmprom
+### Metrics Monitoring
+
 - Prometheus
 - Unsee Alert Manager
-- Grafana
-
-#### CI/CD Tools
-- Gitlab Runner
-
-### TODO
-#### Volume management
-- Ceph
-- Backup
-
-#### Logs aggregation
-- FluentBit
-- Kafka
-- Graylog
-
-#### Metrics Monitoring
-- Telegrambot
+- Grafana with some pre-configured made dashboards
+- Heavily inspired on https://github.com/stefanprodan/swarmprom
 
 ## Installation
+
 1. Install Ubuntu on all VMs you're mean't to use in your Swarm Cluster
 2. Install the latest Docker package on all VMs
 3. On one of the VMs:
-   1. Execute ````docker swarm init````
+   1. Execute ```docker swarm init```
    2. Copy the provided command/token
 4. On the other machines, run the provided command so they will join the Swarm Cluster
 5. ```git clone https://github.com/flaviostutz/docker-swarm-cluster.git```
 6. Setup .env parameters
-7. Run ```initialize-services.sh```
+7. Run ```create.sh```
 8. Open http://portainer.mycluster.org and point it to "Local Daemon"
 9. Look into docker-compose-* files for understanding the cluster topology
+10. Run `curl -kLv --user whoami:whoami123 localhost` and verify if the request was successful
 
 ## Customizations
+
 1. Change the desired compose file for specific cluster configurations
-6. Run ```initialize-all.sh``` for updating modified services
+2. Run ```create.sh``` for updating modified services
 
 ## docker-compose files
+
 - Swarm stack doesn't support .env automatically (yet). You have to run ```export $(cat .env) && docker stack...``` so that those parameters work
 - docker-compose-ingress.yml
   - ```export $(cat .env) && docker stack deploy --compose-file docker-compose-ingress.yml ingress```
@@ -65,9 +59,20 @@ Combines some tooling for creating a good Docker Swarm Cluster.
   - Unsee: [http://unsee.mycluster.org]()
 - docker-compose-devtools.yml
   - ```export $(cat .env) && docker stack deploy --compose-file docker-compose-devtools.yml devtools```
-- docker-compose-logs.yml
-  - ```export $(cat .env) && docker stack deploy --compose-file docker-compose-logs.yml logs```
-  - Graylog: [http://graylog.mycluster.org]()
-- docker-compose-volumes.yml
-  - ```export $(cat .env) && docker stack deploy --compose-file docker-compose-volumes.yml logs```
-  - Ceph UI: [http://ceph.mycluster.org]()
+
+### TODO
+
+#### Volume management
+
+- AWS/DigitalOcean BS
+
+#### Logs aggregation
+
+- FluentBit
+- Kafka
+- Graylog
+
+#### Metrics Monitoring
+
+- Telegrambot
+

@@ -1,28 +1,101 @@
 version: '3.5'
 
 services:
-  traefik:
-    image: traefik:1.6-alpine # The official Traefik docker image
-    # command: --api --docker --docker.swarmMode --docker.watch --entryPoints='Name:http Address::80' --defaultentrypoints=http # Enables the web UI and tells Træfik to listen to docker
-    command: --api --docker --docker.swarmMode --docker.watch --metrics.prometheus # Enables the web UI and tells Træfik to listen to docker
-    ports:
-      - "80:80"     # The HTTP port
-      - "3030:8080" # The Web UI (enabled by --api)
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock # So that Traefik can listen to the Docker events
+
+  caddy-controller:
+    image: lucaslorentz/caddy-docker-proxy:2.3.0-alpine
+    # image: stutzlab/caddy-ingress:1.0.0
+    networks:
+      - caddy
+      - caddy_controller
+    environment:
+      - CADDY_DOCKER_MODE=controller
+      - CADDY_CONTROLLER_NETWORK=10.200.200.0/24
     deploy:
       placement:
         constraints:
           - node.role == manager
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  caddy-server:
+    image: lucaslorentz/caddy-docker-proxy:2.3.0-alpine
+    # image: stutzlab/caddy-ingress:1.0.0
+    ports:
+      - 80:80
+      - 443:443
     networks:
-      - metrics-net
-      - traefik-net
+      - caddy
+      - caddy_controller
+    environment:
+      - CADDY_DOCKER_MODE=server
+      - CADDY_CONTROLLER_NETWORK=10.200.200.0/24
+    # command: -email test@test.com -agree=true -log stdout
+    volumes:
+      - caddy:/data
+    deploy:
+      mode: global
+      labels:
+        # - caddy.auto_https=disable_redirects
+        - caddy_controlled_server=
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 64M
 
+  whoami:
+    image: containous/whoami
+    ports:
+      - 4444:80
+    deploy:
+      labels:
+        - caddy=localhost
+        - caddy.reverse_proxy={{upstreams 80}}
+        - caddy.encode=gzip
+        - caddy.basicauth=/*
+        - caddy.basicauth.whoami=JDJhJDEwJEtJZUVKbGI0VnBrVmtYNjY0bkhlNi43Y0VoNVBQL29pSmt2b1F6NGI4YUV5NEpseERmaElT
+        #whoami/whoami123
+    networks:
+      - caddy
+
+  #caddy standalone
+  # caddy:
+  #   image: lucaslorentz/caddy-docker-proxy:2.3.0-alpine
+  #   ports:
+  #     - 80:80
+  #     - 443:443
+  #   networks:
+  #     - caddy
+  #   deploy:
+  #     labels:
+  #       - caddy.auto_https=disable_redirects
+  #     placement:
+  #       constraints:
+  #         - node.role == manager
+  #     resources:
+  #       limits:
+  #         memory: 128M
+  #       reservations:
+  #         memory: 64M
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - caddy:/data
+      
 networks:
-  traefik-net:
+  caddy:
     external: true
-    # "docker network create traefik-net --scope swarm -d overlay"
-  metrics-net:
+    # "docker network create caddy --scope swarm -d overlay"
+  caddy_controller:
     external: true
-    # "docker network create metrics-net --scope swarm -d overlay"
+    # "docker network create caddy --scope swarm -d overlay --subnet=10.200.200.0/24"
+  metrics:
+    external: true
 
+volumes: 
+  caddy:

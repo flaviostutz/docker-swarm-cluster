@@ -4,7 +4,7 @@ services:
   dockerd-exporter:
     image: stefanprodan/dockerd-exporter:latest
     networks:
-      - metrics-net
+      - metrics
     # environment:
     #   - DOCKER_GWBRIDGE_IP=172.18.0.1
     deploy:
@@ -16,7 +16,7 @@ services:
           memory: 64M
 
   node-exporter:
-    image: flaviostutz/docker-swarm-node-exporter:0.14.5
+    image: flaviostutz/docker-swarm-node-exporter:1.0.1
     environment:
       - NODE_ID={{.Node.ID}}
     volumes:
@@ -25,7 +25,7 @@ services:
       - /:/rootfs:ro
       - /etc/hostname:/etc/nodename
     networks:
-      - metrics-net
+      - metrics
     deploy:
       mode: global
       resources:
@@ -33,9 +33,9 @@ services:
           memory: 128M
         reservations:
           memory: 64M
-          
+     
   cadvisor:
-    image: google/cadvisor:v0.29.0
+    image: google/cadvisor:v0.33.0
     command: -logtostderr -docker_only
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -44,7 +44,22 @@ services:
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
     networks:
-      - metrics-net
+      - metrics
+    deploy:
+      mode: global
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+
+  perfstat:
+    image: flaviostutz/perfstat:v0.3.0
+    privileged: true
+    volumes:
+      - /etc/hostname:/etc/hostname          
+    networks:
+      - metrics
     deploy:
       mode: global
       resources:
@@ -54,7 +69,7 @@ services:
           memory: 64M
 
   alertmanager:
-    image: stefanprodan/swarmprom-alertmanager:v0.14.0
+    image: stefanprodan/swarmprom-alertmanager:v0.15.3
     environment:
       - SLACK_URL=${SLACK_URL:-https://hooks.slack.com/services/TOKEN}
       - SLACK_CHANNEL=${SLACK_CHANNEL:-general}
@@ -65,13 +80,13 @@ services:
     volumes:
       - alertmanager:/alertmanager
     networks:
-      - metrics-net
-      - traefik-net
+      - metrics
+      - caddy
     deploy:
       labels:
-        traefik.frontend.rule: Host:alertmanager.${CLUSTER_DOMAIN}
-        traefik.port: "9093"
-        traefik.docker.network: traefik-net
+        - caddy=alertmanager.${CLUSTER_DOMAIN}
+        - caddy.reverse_proxy={{upstreams 9093}}
+        - caddy.encode=gzip
       mode: replicated
       replicas: 1
       placement:
@@ -84,45 +99,39 @@ services:
           memory: 64M
 
   unsee:
-    image: cloudflare/unsee:v0.8.0
+    image: cloudflare/unsee:v0.9.2
     environment:
       - "ALERTMANAGER_URIS=default:http://alertmanager:9093"
     networks:
-      - metrics-net
-      - traefik-net
+      - metrics
+      - caddy
     deploy:
       labels:
-        traefik.frontend.rule: Host:unsee.${CLUSTER_DOMAIN}
-        traefik.port: "8080"
-        traefik.docker.network: traefik-net
+        - caddy=unsee.${CLUSTER_DOMAIN}
+        - caddy.reverse_proxy={{upstreams 8080}}
+        - caddy.encode=gzip
       mode: replicated
       replicas: 1
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
 
   prometheus:
-    image: stefanprodan/swarmprom-prometheus:v2.2.0-rc.0
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention=1w'
+    image: flaviostutz/prometheus:2.20.1.0
     environment:
-      - JOBS=traefik:8080
+      - SCRAPE_INTERVAL=15s
+      - SCRAPE_TIMEOUT=10s
+      - ALERTMANAGER_TARGETS=alertmanager:9093
+      - STATIC_SCRAPE_TARGETS=traefik@traefik:80
+      - DNS_SCRAPE_TARGETS=dockerd-exporter@dockerd-exporter:9323/metrics cadvisor@cadvisor:8080/metrics node-exporter@node-exporter:9100/metrics perfstat@perfstat:8880/metrics
     volumes:
       - prometheus:/prometheus
-    configs:
-      - source: node_rules
-        target: /etc/prometheus/swarm_node.rules.yml
-      - source: task_rules
-        target: /etc/prometheus/swarm_task.rules.yml
     networks:
-      - metrics-net
-      - traefik-net
+      - metrics
     deploy:
-      labels:
-        traefik.frontend.rule: Host:prometheus.${CLUSTER_DOMAIN}
-        traefik.port: "9090"
-        traefik.docker.network: traefik-net
+      #   traefik.port: "9090"
       mode: replicated
       replicas: 1
       placement:
@@ -135,7 +144,7 @@ services:
           memory: 128M
 
   grafana:
-    image: flaviostutz/docker-swarm-grafana:5.1.3
+    image: flaviostutz/docker-swarm-grafana:7.1.3.0
     environment:
       - GF_SECURITY_ADMIN_USER=${ADMIN_USER:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
@@ -143,13 +152,15 @@ services:
     volumes:
       - grafana:/var/lib/grafana
     networks:
-      - metrics-net
-      - traefik-net
+      - metrics
+      - caddy
     deploy:
       labels:
-        traefik.frontend.rule: Host:grafana.${CLUSTER_DOMAIN}
-        traefik.port: "3000"
-        traefik.docker.network: traefik-net
+        labels:
+          labels:
+            - caddy=grafana.${CLUSTER_DOMAIN}
+            - caddy.reverse_proxy={{upstreams 3000}}
+            - caddy.encode=gzip
       mode: replicated
       replicas: 1
       placement:
@@ -160,13 +171,13 @@ services:
           memory: 128M
         reservations:
           memory: 64M
-          
 
 networks:
-  traefik-net:
+  caddy:
     external: true
-  metrics-net:
+  metrics:
     external: true
+    # "docker network create metrics --scope swarm -d overlay"
 
 configs:
   node_rules:

@@ -8,12 +8,12 @@ services:
     # ports:
     #   - 4040:8080
     environment:
-      PORT: 8080
+      - PORT=8080
     deploy:
       labels:
-        traefik.frontend.rule: Host:dashboard.${CLUSTER_DOMAIN}
-        traefik.port: 8080
-        traefik.docker.network: traefik-net
+        - caddy=dashboard.${CLUSTER_DOMAIN}
+        - caddy.reverse_proxy={{upstreams 8080}}
+        - caddy.encode=gzip
       replicas: 1
       placement:
         constraints:
@@ -24,20 +24,20 @@ services:
         reservations:
           memory: 64M
     networks:
-      - traefik-net
+      - caddy
 
   portainer:
-    image: portainer/portainer:1.17.1
-    command: -H tcp://tasks.agent:9001 --tlsskipverify
+    image: portainer/portainer:1.24.1-alpine
+    command: -H tcp://tasks.portainer-agent:9001 --tlsskipverify
     ports:
       - 5050:9000
     volumes:
       - portainer:/data
     deploy:
       labels:
-        traefik.frontend.rule: Host:portainer.${CLUSTER_DOMAIN}
-        traefik.port: 9000
-        traefik.docker.network: traefik-net
+        - caddy=portainer.${CLUSTER_DOMAIN}
+        - caddy.reverse_proxy={{upstreams 9000}}
+        - caddy.encode=gzip
       replicas: 1
       placement:
         constraints:
@@ -48,36 +48,38 @@ services:
         reservations:
           memory: 64M
     networks:
-      - traefik-net
-      - admin-net
+      - caddy
+      - admin
 
-  agent:
-    image: portainer/agent:1.0.0
+  portainer-agent:
+    image: portainer/agent:linux-amd64-1.6.0-alpine
     environment:
-      AGENT_CLUSTER_ADDR: tasks.agent
+      - AGENT_CLUSTER_ADDR=tasks.portainer-agent
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    ports:
-      - target: 9001
-        published: 9001
-        protocol: tcp
-        mode: host
+    # ports:
+    #   - 9001:9001
     networks:
-      - admin-net
+      - admin
     deploy:
       mode: global
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
 
   feeds:
     image: flaviostutz/docker-swarm-feeds:1.1.0
-    ports:
-      - 5353:8000
+    # ports:
+    #   - 5353:8000
     environment:
       - FEED_NAME=${CLUSTER_DOMAIN}
     deploy:
       labels:
-        traefik.frontend.rule: Host:feeds.${CLUSTER_DOMAIN}
-        traefik.port: 8000
-        traefik.docker.network: traefik-net
+        - caddy=feeds.${CLUSTER_DOMAIN}
+        - caddy.reverse_proxy={{upstreams 8000}}
+        - caddy.encode=gzip
       replicas: 1
       placement:
         constraints:
@@ -88,7 +90,7 @@ services:
         reservations:
           memory: 64M
     networks:
-      - traefik-net
+      - caddy
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
@@ -108,10 +110,12 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
 
 networks:
-  admin-net:
-    driver: overlay
-  traefik-net:
+  admin:
+    external: true
+    # driver: overlay
+    # "docker network create admin --scope swarm -d overlay"
+  caddy:
     external: true
 
 volumes:
-  portainer: {}
+  portainer:

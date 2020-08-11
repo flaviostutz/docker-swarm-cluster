@@ -1,17 +1,20 @@
 version: '3.5'
 
 services:
-  hello-world:
+  helloworld:
     image: whalesalad/docker-debug
     # ports:
     #   - 8080:8080
     networks:
-      - traefik-net
+      - caddy
     deploy:
       labels:
-        traefik.frontend.rule: Host:hello-world.mycluster.org
-        traefik.port: "8080"
-        traefik.docker.network: traefik-net
+        caddy.address: helloworld.${CLUSTER_DOMAIN}
+        caddy.targetport: "8000"
+        caddy.gzip.level: "7"
+        caddy.header: "/"
+        caddy.header.X-Server: "Caddy"
+        caddy.proxy.header_upstream: "Host {host}"
       mode: replicated
       replicas: 1
       resources:
@@ -19,6 +22,7 @@ services:
           memory: 128M
         reservations:
           memory: 64M
+
 networks:
-  traefik-net:
+  caddy:
     external: true
