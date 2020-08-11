@@ -35,13 +35,12 @@ services:
     environment:
       - CADDY_DOCKER_MODE=server
       - CADDY_CONTROLLER_NETWORK=10.200.200.0/24
-    # command: -email test@test.com -agree=true -log stdout
     volumes:
       - caddy:/data
     deploy:
       mode: global
       labels:
-        # - caddy.auto_https=disable_redirects
+        - caddy.auto_https=disable_redirects
         - caddy_controlled_server=
       resources:
         limits:

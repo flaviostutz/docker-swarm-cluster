@@ -3,18 +3,13 @@ version: '3.5'
 services:
   helloworld:
     image: whalesalad/docker-debug
-    # ports:
-    #   - 8080:8080
     networks:
       - caddy
     deploy:
       labels:
-        caddy.address: helloworld.${CLUSTER_DOMAIN}
-        caddy.targetport: "8000"
-        caddy.gzip.level: "7"
-        caddy.header: "/"
-        caddy.header.X-Server: "Caddy"
-        caddy.proxy.header_upstream: "Host {host}"
+        - caddy=helloworld.mycluster.org:80
+        - caddy.reverse_proxy={{upstreams 8080}}
+        - caddy.encode=gzip
       mode: replicated
       replicas: 1
       resources:
