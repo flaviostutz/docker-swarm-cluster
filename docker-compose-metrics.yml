@@ -54,7 +54,7 @@ services:
           memory: 64M
 
   perfstat:
-    image: flaviostutz/perfstat:v0.3.0
+    image: flaviostutz/perfstat:v0.4.0
     privileged: true
     volumes:
       - /etc/hostname:/etc/hostname          
