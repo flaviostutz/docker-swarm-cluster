@@ -156,11 +156,9 @@ services:
       - caddy
     deploy:
       labels:
-        labels:
-          labels:
-            - caddy=http://grafana.${CLUSTER_DOMAIN} https://grafana.${CLUSTER_DOMAIN}
-            - caddy.reverse_proxy={{upstreams 3000}}
-            - caddy.encode=gzip
+        - caddy=http://grafana.${CLUSTER_DOMAIN} https://grafana.${CLUSTER_DOMAIN}
+        - caddy.reverse_proxy={{upstreams 3000}}
+        - caddy.encode=gzip
       mode: replicated
       replicas: 1
       placement:
