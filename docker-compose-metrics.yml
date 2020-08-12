@@ -177,12 +177,6 @@ networks:
     external: true
     # "docker network create metrics --scope swarm -d overlay"
 
-configs:
-  node_rules:
-    file: ./prometheus/node.rules.yml
-  task_rules:
-    file: ./prometheus/task.rules.yml
-
 volumes:
   prometheus:
   grafana:
