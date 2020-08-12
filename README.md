@@ -97,3 +97,16 @@ service docker restart
 
 * Telegrambot
 
+## Cloud provider tips
+
+### Digital Ocean
+
+* For HTTPS certificates, use Let's Encrypt in Load Balancers if you are using a first level domain (something like stutz.com.br). We couldn't manage to make it work with subdomains (like poc.stutz.com.br). 
+
+* For subdomains, use certbot and create a wildcard certificate (ex.: *.poc.stutz.com.br) manually and then upload it to Digital Ocean's Load Balancer.
+
+```sh
+apt-get install letsencrypt
+certbot certonly --manual --preferred-challenges=dns --email=me@me.com --server https://acme-v02.api.letsencrypt.org/directory --agree-tos -d *.poc.me.com
+```
+

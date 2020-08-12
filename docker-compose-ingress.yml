@@ -54,7 +54,7 @@ services:
       - 4444:80
     deploy:
       labels:
-        - caddy=http://localhost https://localhost
+        - caddy=http://whoami.${CLUSTER_DOMAIN} https://whoami.${CLUSTER_DOMAIN} http://localhost https://localhost
         - caddy.reverse_proxy={{upstreams 80}}
         - caddy.encode=gzip
         - caddy.basicauth=/*
