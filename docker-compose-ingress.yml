@@ -40,7 +40,7 @@ services:
     deploy:
       mode: global
       labels:
-        # - caddy.auto_https=disable_redirects
+        # - caddy.auto_https=off
         - caddy_controlled_server=
       resources:
         limits:

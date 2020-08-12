@@ -8,6 +8,7 @@ services:
     deploy:
       labels:
         - caddy=helloworld.mycluster.org
+        #use self signed certificates instead of let's encrypt on local development
         - caddy.tls=internal
         - caddy.reverse_proxy={{upstreams 8080}}
         - caddy.encode=gzip
