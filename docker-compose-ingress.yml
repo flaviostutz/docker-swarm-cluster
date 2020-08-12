@@ -40,7 +40,7 @@ services:
     deploy:
       mode: global
       labels:
-        # - caddy.auto_https=off
+        # - caddy.auto_https=disable_redirects
         - caddy_controlled_server=
       resources:
         limits:
@@ -54,7 +54,7 @@ services:
       - 4444:80
     deploy:
       labels:
-        - caddy=localhost
+        - caddy=http://localhost https://localhost
         - caddy.reverse_proxy={{upstreams 80}}
         - caddy.encode=gzip
         - caddy.basicauth=/*

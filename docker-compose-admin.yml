@@ -11,7 +11,7 @@ services:
       - PORT=8080
     deploy:
       labels:
-        - caddy=dashboard.${CLUSTER_DOMAIN}
+        - caddy=http://dashboard.${CLUSTER_DOMAIN} https://dashboard.${CLUSTER_DOMAIN}
         - caddy.reverse_proxy={{upstreams 8080}}
         - caddy.encode=gzip
       replicas: 1
@@ -35,7 +35,7 @@ services:
       - portainer:/data
     deploy:
       labels:
-        - caddy=portainer.${CLUSTER_DOMAIN}
+        - caddy=http://portainer.${CLUSTER_DOMAIN} https://portainer.${CLUSTER_DOMAIN}
         - caddy.reverse_proxy={{upstreams 9000}}
         - caddy.encode=gzip
       replicas: 1
@@ -77,7 +77,7 @@ services:
       - FEED_NAME=${CLUSTER_DOMAIN}
     deploy:
       labels:
-        - caddy=feeds.${CLUSTER_DOMAIN}
+        - caddy=http://feeds.${CLUSTER_DOMAIN} https://feeds.${CLUSTER_DOMAIN}
         - caddy.reverse_proxy={{upstreams 8000}}
         - caddy.encode=gzip
       replicas: 1

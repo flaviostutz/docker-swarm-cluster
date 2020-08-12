@@ -84,7 +84,7 @@ services:
       - caddy
     deploy:
       labels:
-        - caddy=alertmanager.${CLUSTER_DOMAIN}
+        - caddy=http://alertmanager.${CLUSTER_DOMAIN} https://alertmanager.${CLUSTER_DOMAIN}
         - caddy.reverse_proxy={{upstreams 9093}}
         - caddy.encode=gzip
       mode: replicated
@@ -107,7 +107,7 @@ services:
       - caddy
     deploy:
       labels:
-        - caddy=unsee.${CLUSTER_DOMAIN}
+        - caddy=http://unsee.${CLUSTER_DOMAIN} https://unsee.${CLUSTER_DOMAIN}
         - caddy.reverse_proxy={{upstreams 8080}}
         - caddy.encode=gzip
       mode: replicated
@@ -158,7 +158,7 @@ services:
       labels:
         labels:
           labels:
-            - caddy=grafana.${CLUSTER_DOMAIN}
+            - caddy=http://grafana.${CLUSTER_DOMAIN} https://grafana.${CLUSTER_DOMAIN}
             - caddy.reverse_proxy={{upstreams 3000}}
             - caddy.encode=gzip
       mode: replicated
