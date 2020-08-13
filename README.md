@@ -27,10 +27,12 @@ Combines some tooling for creating a good Docker Swarm Cluster.
 
 * Install the latest Docker package on all VMs (https://docs.docker.com/engine/install/ubuntu/)
 
-* Configure Docker to use jornald for logging on all VMs (defaults to max usage of 10% of disk)
+* Make some Docker daemon configurations
+  * Use jornald for logging on all VMs (defaults to max usage of 10% of disk)
+  * Enable native Docker Prometheus Exporter
 
 ```sh
-echo '{"log-driver": "journald"}' > /etc/docker/daemon.json
+echo '{"log-driver": "journald", "metrics-addr" : "172.18.0.1:9323", "experimental" : true}' > /etc/docker/daemon.json
 service docker restart
 ```
 

@@ -5,8 +5,8 @@ services:
     image: stefanprodan/dockerd-exporter:latest
     networks:
       - metrics
-    environment:
-      - DOCKER_GWBRIDGE_IP=172.18.0.1
+    # environment:
+    #   - IN=172.18.0.1:9323
     deploy:
       mode: global
       resources:
