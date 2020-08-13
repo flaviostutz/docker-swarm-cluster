@@ -16,7 +16,7 @@ services:
           memory: 64M
 
   node-exporter:
-    image: flaviostutz/docker-swarm-node-exporter:1.0.1
+    image: flaviostutz/docker-swarm-node-exporter:1.1.1
     environment:
       - NODE_ID={{.Node.ID}}
     volumes:
