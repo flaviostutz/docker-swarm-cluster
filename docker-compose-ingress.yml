@@ -58,8 +58,8 @@ services:
         - caddy.reverse_proxy={{upstreams 80}}
         - caddy.encode=gzip
         - caddy.basicauth=/*
-        - caddy.basicauth.whoami=JDJhJDEwJEtJZUVKbGI0VnBrVmtYNjY0bkhlNi43Y0VoNVBQL29pSmt2b1F6NGI4YUV5NEpseERmaElT
-        #whoami/whoami123
+        - caddy.basicauth.admin=JDJhJDA4JGFGYXo1a1ZtckJXcTZqU2FxNzY4OHVtQ1NZT0JpS3llMmNkOGx3NFo1bnIuQWNwb2FkTGR1
+        #admin/admin123
     networks:
       - caddy
 

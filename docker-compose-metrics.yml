@@ -5,8 +5,8 @@ services:
     image: stefanprodan/dockerd-exporter:latest
     networks:
       - metrics
-    # environment:
-    #   - DOCKER_GWBRIDGE_IP=172.18.0.1
+    environment:
+      - DOCKER_GWBRIDGE_IP=172.18.0.1
     deploy:
       mode: global
       resources:
@@ -130,6 +130,7 @@ services:
       - prometheus:/prometheus
     networks:
       - metrics
+      - caddy
     deploy:
       labels:
         - caddy=http://prometheus.${CLUSTER_DOMAIN} https://prometheus.${CLUSTER_DOMAIN}
