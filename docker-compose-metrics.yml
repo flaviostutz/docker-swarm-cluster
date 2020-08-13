@@ -124,8 +124,8 @@ services:
       - SCRAPE_INTERVAL=15s
       - SCRAPE_TIMEOUT=10s
       - ALERTMANAGER_TARGETS=alertmanager:9093
-      - STATIC_SCRAPE_TARGETS=traefik@traefik:80
-      - DNS_SCRAPE_TARGETS=dockerd-exporter@dockerd-exporter:9323/metrics cadvisor@cadvisor:8080/metrics node-exporter@node-exporter:9100/metrics perfstat@perfstat:8880/metrics
+      # - STATIC_SCRAPE_TARGETS=traefik@traefik:80
+      - DNS_SCRAPE_TARGETS=dockerd-exporter@tasks.dockerd-exporter:9323/metrics cadvisor@tasks.cadvisor:8080/metrics node-exporter@tasks.node-exporter:9100/metrics perfstat@tasks.perfstat:8880/metrics
     volumes:
       - prometheus:/prometheus
     networks:
