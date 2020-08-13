@@ -131,7 +131,13 @@ services:
     networks:
       - metrics
     deploy:
-      #   traefik.port: "9090"
+      labels:
+        - caddy=http://prometheus.${CLUSTER_DOMAIN} https://prometheus.${CLUSTER_DOMAIN}
+        - caddy.reverse_proxy={{upstreams 9090}}
+        - caddy.encode=gzip
+        - caddy.basicauth=/*
+        - caddy.basicauth.admin=JDJhJDA4JGFGYXo1a1ZtckJXcTZqU2FxNzY4OHVtQ1NZT0JpS3llMmNkOGx3NFo1bnIuQWNwb2FkTGR1
+        #admin/admin123
       mode: replicated
       replicas: 1
       placement:
