@@ -54,6 +54,24 @@ service docker restart
 
 * Run `curl -kLv --user whoami:whoami123 localhost` and verify if the request was successful
 
+## Console commands
+
+* Enter shell of each container
+
+```sh
+#enter mongo CLI
+mongo
+
+#show help
+help
+
+#
+
+#show replication status
+rs.status()
+
+```
+
 ## Tricks
 
 * Caddy has a "development" mode where it uses a self signed certificate while not in production. Just add `- caddy.tls=internal` label to your service.
