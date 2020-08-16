@@ -55,7 +55,7 @@ services:
 
   perfstat:
     image: flaviostutz/perfstat:v0.4.0
-    privileged: true
+    # privileged: true
     volumes:
       - /etc/hostname:/etc/hostname          
     networks:
@@ -88,7 +88,7 @@ services:
         - caddy.reverse_proxy={{upstreams 9093}}
         - caddy.encode=gzip
         - caddy.basicauth=/*
-        - caddy.basicauth.admin=JDJhJDA4JGFGYXo1a1ZtckJXcTZqU2FxNzY4OHVtQ1NZT0JpS3llMmNkOGx3NFo1bnIuQWNwb2FkTGR1
+        - caddy.basicauth.admin=JDJhJDEwJGZFS3ZIdFpIek9sNG1RMk5zQm0xVnV5S2VyQkJPS3lRV3h0Y1pwSTA4cUNFd1IwcVFNMGxP
       mode: replicated
       replicas: 1
       placement:
@@ -113,7 +113,7 @@ services:
         - caddy.reverse_proxy={{upstreams 8080}}
         - caddy.encode=gzip
         - caddy.basicauth=/*
-        - caddy.basicauth.admin=JDJhJDA4JGFGYXo1a1ZtckJXcTZqU2FxNzY4OHVtQ1NZT0JpS3llMmNkOGx3NFo1bnIuQWNwb2FkTGR1
+        - caddy.basicauth.admin=JDJhJDEwJGZFS3ZIdFpIek9sNG1RMk5zQm0xVnV5S2VyQkJPS3lRV3h0Y1pwSTA4cUNFd1IwcVFNMGxP
       mode: replicated
       replicas: 1
       resources:
@@ -141,7 +141,7 @@ services:
         - caddy.reverse_proxy={{upstreams 9090}}
         - caddy.encode=gzip
         - caddy.basicauth=/*
-        - caddy.basicauth.admin=JDJhJDA4JGFGYXo1a1ZtckJXcTZqU2FxNzY4OHVtQ1NZT0JpS3llMmNkOGx3NFo1bnIuQWNwb2FkTGR1
+        - caddy.basicauth.admin=JDJhJDEwJGZFS3ZIdFpIek9sNG1RMk5zQm0xVnV5S2VyQkJPS3lRV3h0Y1pwSTA4cUNFd1IwcVFNMGxP
         #admin/admin123
       mode: replicated
       replicas: 1

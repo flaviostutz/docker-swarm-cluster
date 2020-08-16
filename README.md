@@ -28,19 +28,40 @@ Combines some tooling for creating a good Docker Swarm Cluster.
 
 * Install the latest Docker package on all VMs (https://docs.docker.com/engine/install/ubuntu/)
 
-* On one of the VMs:
-  * Execute ```docker swarm init```
-  * Copy the provided command/token
+* The best practise is to have
+  * 3 VMs as Swarm Managers (may be small VMs)
+  * any number of VMs as Swarm workers (larger VMs)
+  * Place only essential services to run on managers
+    * By doing this, in case your services exhaust the cluster resources, you will still have access to portainer and grafana to react to a crisis
+    * Avoid your services to run on those machines by using placement constraints:
 
-* On the other machines
-  * Run the provided command from when you run `swarm init` so they will join the Swarm Cluster
-    * Don't forget to use `--advertise-addr [localip]` with a local IP that connects those machines if they are local so that you don't use a public IP for that (by using Internet link)
+```yml
+yourservice:
+  ...
+  deploy:
+    placement:
+        constraints:
+          - node.role != manager
+```
+
+* On one of the VMs:
+  * Execute ```docker swarm init``` on the first VM with role manager
+  * Copy the provided command/token to run on worker machines (not managers)
+  * Execute `docker swarm token-info manager` and keep to run on manager machines
+
+* On machines selected to be managers (min 3)
+  * Run the command from previous step for managers and add `--advertise-addr [localip]` with a local IP that connects those machines if they are local so that you don't use a public IP for that (by using Internet link)
     * Ex.: `docker swarm join --advertise-addr 10.120.0.5 --token ...`
 
-* Make some Docker daemon configurations
+* On machines selected to be workers
+  * Run the command got on any manager by `docker swarm token-info worker` and add `--advertise-addr [localip]` with a local IP that connects those machines if they are local so that you don't use a public IP for that (by using Internet link)
+    * Ex.: `docker swarm join --advertise-addr 10.120.0.5 --token ...`
+
+* Make Docker daemon configurations on all machines
   * **This has to be made after joining Swarm so that network 172.18/24 already exists (!)**
   * Use journald for logging on all VMs (defaults to max usage of 10% of disk)
   * Enable native Docker Prometheus Exporter
+  * Run the following on each machine (workers and managers)
 
 ```sh
 echo '{"log-driver": "journald", "metrics-addr" : "172.18.0.1:9323", "experimental" : true}' > /etc/docker/daemon.json
@@ -72,7 +93,7 @@ Services will be accessible by URLs:
     http://alertmanager.mycluster.org
     http://prometheus.mycluster.org
 
-Services which don't have embedded user name protection will use Caddy's basic auth. Change password accordingly. Defaults to admin/admin123
+Services which don't have embedded user name protection will use Caddy's basic auth. Change password accordingly. Defaults to admin/admin123admin123
 
 The following services will have published ports on hosts so that you can use swarm network mesh to access admin service directly when Caddy is not accessible
   
@@ -89,6 +110,10 @@ So point your browser to any public IP of a member VM to this port and access th
 * Have a small VM in your Swarm Cluster to have only basic cluster services. Avoid any other services to run in this server so that if your cluster run out of resources you will still have access to monitoring and admin tools (grafana, portainer etc) so that you can diagnosis what is going on and decide on cluster expansion, for example.
 
 PLACE IMAGE HERE
+
+### OOM
+
+* If a node suffers from severe resource exhaustion, docker daemon presents some strange behavior (services not scheduled well, some commands fail saying the node is not part of a swarm cluster etc). It's better to reboot this VMs after solving the causes.
 
 ## Tricks
 
