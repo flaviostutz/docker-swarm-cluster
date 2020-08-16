@@ -74,7 +74,7 @@ services:
 
   swarmpit:
     image: swarmpit/swarmpit:1.9
-    # environment:
+    environment:
       - SWARMPIT_DB=http://swarmpit-db:5984
     #   - SWARMPIT_INFLUXDB=http://influxdb:8086
     volumes:
