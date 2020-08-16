@@ -102,7 +102,7 @@ services:
   swarmpit-db:
     image: couchdb:2.3.0
     volumes:
-      - db-data:/opt/couchdb/data
+      - swarmpit-db:/opt/couchdb/data
     networks:
       - admin
     deploy:
@@ -189,3 +189,4 @@ networks:
 
 volumes:
   portainer:
+  swarmpit-db:
