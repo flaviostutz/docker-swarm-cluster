@@ -39,9 +39,11 @@ services:
       mode: global
       resources:
         limits:
-          memory: 128M
-        reservations:
+          cpus: '0.20'
           memory: 64M
+        reservations:
+          cpus: '0.05'
+          memory: 32M
 
   dashboard:
     image: charypar/swarm-dashboard:latest
@@ -69,6 +71,53 @@ services:
           memory: 64M
     networks:
       - caddy
+
+  swarmpit:
+    image: swarmpit/swarmpit:1.9
+    # environment:
+    #   - SWARMPIT_DB=http://db:5984
+    #   - SWARMPIT_INFLUXDB=http://influxdb:8086
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - caddy
+      - admin
+    deploy:
+      labels:
+        - caddy=http://swarmpit.${CLUSTER_DOMAIN} https://swarmpit.${CLUSTER_DOMAIN}
+        - caddy.reverse_proxy={{upstreams 8080}}
+        - caddy.encode=gzip
+        - caddy.basicauth=/*
+        - caddy.basicauth.admin=JDJhJDEwJGZFS3ZIdFpIek9sNG1RMk5zQm0xVnV5S2VyQkJPS3lRV3h0Y1pwSTA4cUNFd1IwcVFNMGxP
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+
+  swarmpit-agent:
+    image: swarmpit/agent:2.2
+    environment:
+      - DOCKER_API_VERSION=1.35
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - admin
+    deploy:
+      mode: global
+      labels:
+        swarmpit.agent: 'true'
+      resources:
+        limits:
+          cpus: '0.10'
+          memory: 64M
+        reservations:
+          cpus: '0.05'
+          memory: 32M
 
   feeds:
     image: flaviostutz/docker-swarm-feeds:1.1.0
