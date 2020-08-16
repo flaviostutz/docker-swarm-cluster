@@ -95,9 +95,9 @@ services:
           - node.role == manager
       resources:
         limits:
-          memory: 256M
+          memory: 512M
         reservations:
-          memory: 128M
+          memory: 300M
 
   swarmpit-agent:
     image: swarmpit/agent:2.2
