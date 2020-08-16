@@ -21,6 +21,7 @@ Combines some tooling for creating a good Docker Swarm Cluster.
 * Grafana with some pre-configured made dashboards
 * Heavily inspired on https://github.com/stefanprodan/swarmprom
 
+
 ## Installation
 
 * Install Ubuntu on all VMs you're mean't to use in your Swarm Cluster
@@ -54,23 +55,33 @@ service docker restart
 
 * Run `curl -kLv --user whoami:whoami123 localhost` and verify if the request was successful
 
-## Console commands
+## Service URLs
 
-* Enter shell of each container
+Services will be accessible by URLs:
+    http://portainer.mycluster.org
+    http://dashboard.mycluster.org
+    http://grafana.mycluster.org
+    http://unsee.mycluster.org
+    http://alertmanager.mycluster.org
+    http://prometheus.mycluster.org
 
-```sh
-#enter mongo CLI
-mongo
+Services which don't have embedded user name protection will use Caddy's basic auth. Change password accordingly. Defaults to admin/admin123
 
-#show help
-help
+The following services will have published ports on hosts so that you can use swarm network mesh to access admin service directly when Caddy is not accessible
+  
+* portainer:8181
+* grafana: 9191
 
-#
+So point your browser to any public IP of a member VM to this port and access the service
 
-#show replication status
-rs.status()
 
-```
+## Production tips
+
+### Optimal Topology
+
+* Have a small VM in your Swarm Cluster to have only basic cluster services. Avoid any other services to run in this server so that if your cluster run out of resources you will still have access to monitoring and admin tools (grafana, portainer etc) so that you can diagnosis what is going on and decide on cluster expansion, for example.
+
+PLACE IMAGE HERE
 
 ## Tricks
 
@@ -129,3 +140,9 @@ rs.status()
 apt-get install letsencrypt
 certbot certonly --manual --preferred-challenges=dns --email=me@me.com --server https://acme-v02.api.letsencrypt.org/directory --agree-tos -d *.poc.me.com
 ```
+
+#### VMs
+
+* Use image Marketplace -> Docker
+* Check "Monitoring" to have native basic VM monitoring from DO panel
+

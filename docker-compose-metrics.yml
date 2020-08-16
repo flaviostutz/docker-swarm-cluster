@@ -87,6 +87,8 @@ services:
         - caddy=http://alertmanager.${CLUSTER_DOMAIN} https://alertmanager.${CLUSTER_DOMAIN}
         - caddy.reverse_proxy={{upstreams 9093}}
         - caddy.encode=gzip
+        - caddy.basicauth=/*
+        - caddy.basicauth.admin=JDJhJDA4JGFGYXo1a1ZtckJXcTZqU2FxNzY4OHVtQ1NZT0JpS3llMmNkOGx3NFo1bnIuQWNwb2FkTGR1
       mode: replicated
       replicas: 1
       placement:
@@ -110,6 +112,8 @@ services:
         - caddy=http://unsee.${CLUSTER_DOMAIN} https://unsee.${CLUSTER_DOMAIN}
         - caddy.reverse_proxy={{upstreams 8080}}
         - caddy.encode=gzip
+        - caddy.basicauth=/*
+        - caddy.basicauth.admin=JDJhJDA4JGFGYXo1a1ZtckJXcTZqU2FxNzY4OHVtQ1NZT0JpS3llMmNkOGx3NFo1bnIuQWNwb2FkTGR1
       mode: replicated
       replicas: 1
       resources:
@@ -158,6 +162,8 @@ services:
       - GF_USERS_ALLOW_SIGN_UP=false
     volumes:
       - grafana:/var/lib/grafana
+    ports:
+      - 9191:3000
     networks:
       - metrics
       - caddy

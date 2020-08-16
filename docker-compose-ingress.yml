@@ -51,7 +51,7 @@ services:
   whoami:
     image: containous/whoami
     ports:
-      - 4444:80
+      - 8585:80
     deploy:
       labels:
         - caddy=http://whoami.${CLUSTER_DOMAIN} https://whoami.${CLUSTER_DOMAIN} http://localhost https://localhost
