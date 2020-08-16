@@ -75,7 +75,7 @@ services:
   swarmpit:
     image: swarmpit/swarmpit:1.9
     # environment:
-    #   - SWARMPIT_DB=http://db:5984
+      - SWARMPIT_DB=http://swarmpit-db:5984
     #   - SWARMPIT_INFLUXDB=http://influxdb:8086
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -98,6 +98,24 @@ services:
           memory: 512M
         reservations:
           memory: 300M
+
+  swarmpit-db:
+    image: couchdb:2.3.0
+    volumes:
+      - db-data:/opt/couchdb/data
+    networks:
+      - admin
+    deploy:
+      resources:
+        limits:
+          cpus: '0.30'
+          memory: 256M
+        reservations:
+          cpus: '0.15'
+          memory: 128M
+      placement:
+        constraints:
+          - node.role == manager
 
   swarmpit-agent:
     image: swarmpit/agent:2.2
