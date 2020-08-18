@@ -35,6 +35,21 @@ Combines some tooling for creating a good Docker Swarm Cluster.
     * By doing this, in case your services exhaust the cluster resources, you will still have access to portainer and grafana to react to a crisis
     * Avoid your services to run on those machines by using placement constraints:
 
+## Ingress
+
+* Use a local Caddy to handle TLS (with Let's Encrypt) and load balancing
+  * **Indicated for most applications**
+  * Just point your DNS entries to the public IP of the VMs that are part of the cluster and they will handle requests and balance between container instances.
+
+* Use a cloud LB to handle front TLS certificates and load balancing
+  * **Indicated for heavy loaded or critical sites**
+  * Your cloud provider LB will handle TLS certificates and balance between Swarm Nodes. Each Node will have Caddy listening on port 80 through Swarm mesh, so that when a request arrives on HTTP, it will proxy the request to the correct container services based on Host header(according to configured labels)
+  * Disable https support from Caddy in this case by using the following label
+
+```yml
+
+```
+
 ```yml
 yourservice:
   ...
@@ -102,6 +117,18 @@ The following services will have published ports on hosts so that you can use sw
 
 So point your browser to any public IP of a member VM to this port and access the service
 
+## Common Operations
+
+### Add a new VM to the cluster
+
+* Create the new VM on cloud provider on the same VPC (see Cloud provider tips for specific instructions)
+* SSH a Swarm manager node and execute `docker swarm join-token worker` to get a Swarm join token
+* Copy the command and execute it on new VM
+  * Add `--advertise-addr [local-network-interface-ip]` to the command if your host has multiple NICs
+  * Execute the command on worker VM. Ex.: `docker swarm join --token aaaaaaaaaaaa 10.120.0.2:2377 --advertise-addr 10.120.0.1`
+* All containers that are "global" will be placed on this Node immediatelly
+* Even if other hosts are full (containers using too much memory/CPU) they won't be rebalanced as soon this node is added to the cluster. New containers will be placed on this node only when they are restarted (this is by design to minimize user disruption)
+* Add the newly created VM to the HTTP Load Balancer (if you use one from cloud provider) so that incoming requests that Caddy will handle will be routed through Swarm mesh network
 
 ## Production tips
 

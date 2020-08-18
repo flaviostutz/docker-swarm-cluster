@@ -121,6 +121,9 @@ services:
           memory: 128M
         reservations:
           memory: 64M
+      placement:
+        constraints:
+          - node.role == manager
 
   prometheus:
     image: flaviostutz/prometheus:2.20.1.0
