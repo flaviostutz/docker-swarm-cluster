@@ -34,20 +34,26 @@ Combines some tooling for creating a good Docker Swarm Cluster.
   * Place only essential services to run on managers
     * By doing this, in case your services exhaust the cluster resources, you will still have access to portainer and grafana to react to a crisis
     * Avoid your services to run on those machines by using placement constraints:
+    * Verify that firewall is either disabled for those internal hosts, or have the correct open ports for mesh service and internal docker overlay network requirements (https://docs.docker.com/network/overlay/#publish-ports-on-an-overlay-network). Those problems are hard to identify, mainly when only ONE VM is with this kind of problem
 
 ## Ingress
 
-* Use a local Caddy to handle TLS (with Let's Encrypt) and load balancing
+* Use Caddy to handle TLS (with Let's Encrypt) and load balancing
   * **Indicated for most applications**
   * Just point your DNS entries to the public IP of the VMs that are part of the cluster and they will handle requests and balance between container instances.
 
 * Use a cloud LB to handle front TLS certificates and load balancing
   * **Indicated for heavy loaded or critical sites**
   * Your cloud provider LB will handle TLS certificates and balance between Swarm Nodes. Each Node will have Caddy listening on port 80 through Swarm mesh, so that when a request arrives on HTTP, it will proxy the request to the correct container services based on Host header(according to configured labels)
-  * Disable https support from Caddy in this case by using the following label
+  * Disable https support from Caddy in this case by using the following label so that it won't be trying to generate a certificate by itself
 
 ```yml
-
+  caddy-server:
+    deploy:
+      labels:
+        - caddy.auto_https=off
+        - caddy_controlled_server=
+    ...
 ```
 
 ```yml
@@ -129,6 +135,7 @@ So point your browser to any public IP of a member VM to this port and access th
 * All containers that are "global" will be placed on this Node immediatelly
 * Even if other hosts are full (containers using too much memory/CPU) they won't be rebalanced as soon this node is added to the cluster. New containers will be placed on this node only when they are restarted (this is by design to minimize user disruption)
 * Add the newly created VM to the HTTP Load Balancer (if you use one from cloud provider) so that incoming requests that Caddy will handle will be routed through Swarm mesh network
+* Check firewall configuration (either disabled, or configured properly with service mesh and internal overlay network requirements as in https://docs.docker.com/network/overlay/#publish-ports-on-an-overlay-network)
 
 ## Production tips
 
