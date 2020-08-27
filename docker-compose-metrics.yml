@@ -145,7 +145,7 @@ services:
         - caddy.encode=gzip
         - caddy.basicauth=/*
         - caddy.basicauth.admin=JDJhJDEwJGZFS3ZIdFpIek9sNG1RMk5zQm0xVnV5S2VyQkJPS3lRV3h0Y1pwSTA4cUNFd1IwcVFNMGxP
-        #admin/admin123
+        #admin/admin123admin123
       mode: replicated
       replicas: 1
       placement:
