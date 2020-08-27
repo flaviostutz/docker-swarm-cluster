@@ -46,7 +46,7 @@ services:
           memory: 32M
 
   dashboard:
-    image: dockersamples/visualizer
+    image: charypar/swarm-dashboard:latest
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     # ports:
