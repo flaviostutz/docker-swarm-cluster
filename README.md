@@ -67,6 +67,7 @@ yourservice:
 
 * On one of the VMs:
   * Execute ```docker swarm init``` on the first VM with role manager
+    * If your machine is connected to more than one network, it may ask you to use `--advertise-addr` to indicate which network to use for swarm communications
   * Copy the provided command/token to run on worker machines (not managers)
   * Execute `docker swarm token-info manager` and keep to run on manager machines
 
@@ -82,10 +83,11 @@ yourservice:
   * **This has to be made after joining Swarm so that network 172.18/24 already exists (!)**
   * Use journald for logging on all VMs (defaults to max usage of 10% of disk)
   * Enable native Docker Prometheus Exporter
+  * Unleash ulimit for mem lock (fix problems with Caddy) and stack size
   * Run the following on each machine (workers and managers)
 
 ```sh
-echo '{"log-driver": "journald", "metrics-addr" : "172.18.0.1:9323", "experimental" : true}' > /etc/docker/daemon.json
+echo '{"log-driver": "journald", "metrics-addr" : "172.18.0.1:9323", "experimental" : true, "default-ulimits": { "memlock": { "Name": "memlock", "Hard": -1, "Soft": -1 }, "stack": { "Name": "stack", "Hard": -1, "Soft": -1 }} }' > /etc/docker/daemon.json
 service docker restart
 ```
 
@@ -103,6 +105,35 @@ service docker restart
 * Protect all your VMs with a SSH key (https://www.cyberciti.biz/faq/ubuntu-18-04-setup-ssh-public-key-authentication/)
   * If you leave then with weak passwords it's a matter of hours for your server to be hacked (ransomwares mainly)
 * Disable access to all ports of your server (but :80 and :443) by configuring your provider's firewall (or by using an internal firewall like iptables)
+
+## Optimal elastic topology
+
+If you need elasticity (need to grow or shrink server size depending on app traffic) a good topology would be to have some two cluster "sizes". One that we call "idle" that has the minimal sizing when few users are on, and a "hot" configuration when traffic is high.
+
+For the "idle" state, we use:
+
+* 1 VM with 1vCPU 2GB RAM (Swarm Manager + Prometheus)
+* 2 VMs with 1vCPU 1GB RAM (Swarm Manager)
+* 1 VM as worker with 2vCPU 4GB RAM (App services)
+
+For the "hot" state, we use:
+
+* 1 VM with 1vCPU 2GB RAM (Swarm Manager + Prometheus) - same as "idle"
+* 2 VMs with 1vCPU 1GB RAM (Swarm Manager) - same as "idle"
+* Any number of VMs for handling users load
+
+## HA practices
+
+* Use "spread" preference in your service so that replicas are placed on different Nodes
+  * In this example, group spread groups by role manager/worker, but you can group by any other label values
+
+```yml
+...
+      placement:
+        preferences:
+          - spread: node.role
+...
+```
 
 ## Service URLs
 
@@ -124,6 +155,15 @@ The following services will have published ports on hosts so that you can use sw
 So point your browser to any public IP of a member VM to this port and access the service
 
 ## Common Operations
+
+### Force service rebalancing among nodes
+
+```sh
+# docker service ls -q > dkr_svcs && for i in `cat dkr_svcs`; do docker service update "$i" --detach=false --force ; done
+for service in $(docker service ls -q); do docker service update --force $service; done
+```
+
+WARNING: User service disruption will happen while doing this as some containers will be stopped during this operation
 
 ### Add a new VM to the cluster
 
